@@ -575,12 +575,12 @@
       '<input type="text" id="f-projectName" data-field="projectName" list="business-name-options" placeholder="業務を選択、または入力" autocomplete="off">' +
       '<datalist id="business-name-options"></datalist>' +
       '</div>' +
-      field("workLocation", "作業場所", "text", false, "", "例：〇〇市〇〇橋 上部工") +
-      textareaField("workContent", "作業内容", false, "例：橋梁定期点検（下部工点検、写真撮影）") +
-      field("workerCount", "現場作業員数", "number", true, "", "人数") +
-      field("guideCount", "誘導員数", "number", false, "", "人数") +
+      field("workLocation", "作業場所・箇所", "text", false, "", "例：○○橋等") +
+      textareaField("workContent", "作業内容", false, "例：点検車点検、地上点検") +
+      field("workerCount", "点検作業員数", "number", true, "2", "人数") +
+      field("guideCount", "誘導員数", "number", false, "2", "人数") +
       '<div class="field" style="grid-column: 1 / -1;">' +
-      '<label>点検車運転手</label>' +
+      '<label>点検車運転手もしくは点検補助</label>' +
       '<div style="display:flex; gap:16px; align-items:center; margin-bottom:8px;">' +
       '<label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;"><input type="radio" name="driverType" value="自社" checked> 自社</label>' +
       '<label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;"><input type="radio" name="driverType" value="外注"> 外注</label>' +
@@ -876,10 +876,10 @@
       '<div class="detail-grid">' +
       detailCell("日付", formatDateLabel(r.date)) +
       detailCell("業務名", r.projectName) +
-      detailCell("作業場所", r.workLocation) +
-      detailCell("現場作業員数", (r.workerCount != null ? r.workerCount + " 名" : "-")) +
+      detailCell("作業場所・箇所", r.workLocation) +
+      detailCell("点検作業員数", (r.workerCount != null ? r.workerCount + " 名" : "-")) +
       detailCell("誘導員数", (r.guideCount != null ? r.guideCount + " 名" : "-")) +
-      detailCell("点検車運転手", (r.driverType || "") + (r.driverName ? "　" + r.driverName : "")) +
+      detailCell("点検車運転手もしくは点検補助", (r.driverType || "") + (r.driverName ? "　" + r.driverName : "")) +
       "</div>" +
       '<div class="detail-block">' +
       '<div class="detail-cell-label">作業内容</div>' +
