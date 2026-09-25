@@ -242,6 +242,33 @@
   .combo-item:hover, .combo-item:active { background: var(--primary-soft); }
   .combo-empty { padding: 13px 14px; font-size: 13px; color: var(--text-muted); }
 
+  /* 確認モーダル（未チェック項目の保存確認） */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 22, 33, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 1000;
+  }
+  .modal-card {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    max-width: 440px;
+    width: 100%;
+    padding: 22px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  }
+  .modal-title { font-size: 17px; font-weight: 700; color: var(--ink); margin-bottom: 12px; }
+  .modal-body { font-size: 14px; color: var(--text); line-height: 1.6; }
+  .modal-list { margin: 6px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+  .modal-list li { color: var(--danger); font-weight: 600; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+
   .checklist { display: flex; flex-direction: column; gap: 8px; }
   .check-row {
     display: flex;
@@ -427,6 +454,42 @@
   }
   function allChecked(checklist) {
     return CHECKLIST_ITEMS.every(function (item) { return checklist && checklist[item.key]; });
+  }
+
+  // 未チェック項目がある場合の確認モーダル（OK=このまま保存 / 修正する=フォームに戻る）
+  function confirmUnchecked(labels, onConfirm) {
+    var existing = document.getElementById("ky-modal-overlay");
+    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+
+    var overlay = document.createElement("div");
+    overlay.id = "ky-modal-overlay";
+    overlay.className = "modal-overlay";
+    overlay.innerHTML =
+      '<div class="modal-card" role="dialog" aria-modal="true">' +
+        '<div class="modal-title">⚠ 未チェックの項目があります</div>' +
+        '<div class="modal-body">' +
+          "安全チェックリストに、チェックが入っていない項目があります。" +
+          '<ul class="modal-list">' +
+            labels.map(function (l) { return "<li>" + escapeHtml(l) + "</li>"; }).join("") +
+          "</ul>" +
+          '<div style="margin-top:12px;">チェックが入っていませんが、このまま保存してよろしいですか？</div>' +
+        "</div>" +
+        '<div class="modal-actions">' +
+          '<button type="button" class="btn" id="ky-modal-cancel">修正する</button>' +
+          '<button type="button" class="btn btn-primary" id="ky-modal-ok">このまま保存</button>' +
+        "</div>" +
+      "</div>";
+    document.body.appendChild(overlay);
+
+    function close() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }
+    document.getElementById("ky-modal-cancel").addEventListener("click", close);
+    document.getElementById("ky-modal-ok").addEventListener("click", function () {
+      close();
+      onConfirm();
+    });
+    overlay.addEventListener("click", function (e) {
+      if (e.target === overlay) close(); // 背景タップ＝修正扱い
+    });
   }
 
   // ---------- navigation ----------
@@ -869,29 +932,42 @@
         return;
       }
 
-      var submitBtn = document.getElementById("submit-btn");
-      submitBtn.disabled = true;
-      submitBtn.textContent = "保存中…";
+      function doSave() {
+        var submitBtn = document.getElementById("submit-btn");
+        submitBtn.disabled = true;
+        submitBtn.textContent = "保存中…";
 
-      addReport({
-        date: date,
-        projectName: projectName,
-        workLocation: workLocation,
-        workContent: workContent,
-        workerCount: Number(workerCountRaw),
-        guideCount: guideCountRaw === "" ? 0 : Number(guideCountRaw),
-        driverType: driverType,
-        driverName: driverName,
-        checklist: checklist,
-        signature: sigText
-      }).then(function () {
-        go("history");
-      }).catch(function () {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "報告書を保存";
-        errEl.textContent = "保存に失敗しました。もう一度お試しください。";
-        errEl.style.display = "block";
-      });
+        addReport({
+          date: date,
+          projectName: projectName,
+          workLocation: workLocation,
+          workContent: workContent,
+          workerCount: Number(workerCountRaw),
+          guideCount: guideCountRaw === "" ? 0 : Number(guideCountRaw),
+          driverType: driverType,
+          driverName: driverName,
+          checklist: checklist,
+          signature: sigText
+        }).then(function () {
+          go("history");
+        }).catch(function () {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "報告書を保存";
+          errEl.textContent = "保存に失敗しました。もう一度お試しください。";
+          errEl.style.display = "block";
+        });
+      }
+
+      // 安全チェックリストに未チェックがあれば確認ポップアップを表示
+      var uncheckedLabels = CHECKLIST_ITEMS.filter(function (item) {
+        return !checklist[item.key];
+      }).map(function (item) { return item.label; });
+
+      if (uncheckedLabels.length) {
+        confirmUnchecked(uncheckedLabels, doSave);
+      } else {
+        doSave();
+      }
     });
   }
 
