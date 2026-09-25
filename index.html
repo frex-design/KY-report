@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KY報告書</title>
+<!-- PWA / ホーム画面追加対応 -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KY報告書">
+<meta name="application-name" content="KY報告書">
+<meta name="theme-color" content="#1d5fae">
+<style>
+  :root {
+    --bg: #f2f5f8;
+    --surface: #ffffff;
+    --surface-alt: #eef2f6;
+    --border: #d7dee6;
+    --text: #1b2430;
+    --text-muted: #647085;
+    --primary: #1d5fae;
+    --primary-dark: #164a89;
+    --primary-soft: #e7f0fb;
+    --accent: #b8720a;
+    --accent-soft: #fbf0dd;
+    --danger: #c0392b;
+    --danger-soft: #fbeceb;
+    --success: #1f8a4c;
+    --success-soft: #e8f6ee;
+    --shadow: rgba(20, 30, 48, 0.08);
+    --ink: #17253b;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12161d;
+      --surface: #1b212b;
+      --surface-alt: #232a35;
+      --border: #333c4a;
+      --text: #e7ebf1;
+      --text-muted: #97a2b4;
+      --primary: #5a9bee;
+      --primary-dark: #7fb1f2;
+      --primary-soft: #1d2c40;
+      --accent: #e0a94a;
+      --accent-soft: #362a15;
+      --danger: #e6685a;
+      --danger-soft: #3a2020;
+      --success: #4cbb7d;
+      --success-soft: #16301f;
+      --shadow: rgba(0, 0, 0, 0.35);
+      --ink: #eef2f7;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12161d;
+    --surface: #1b212b;
+    --surface-alt: #232a35;
+    --border: #333c4a;
+    --text: #e7ebf1;
+    --text-muted: #97a2b4;
+    --primary: #5a9bee;
+    --primary-dark: #7fb1f2;
+    --primary-soft: #1d2c40;
+    --accent: #e0a94a;
+    --accent-soft: #362a15;
+    --danger: #e6685a;
+    --danger-soft: #3a2020;
+    --success: #4cbb7d;
+    --success-soft: #16301f;
+    --shadow: rgba(0, 0, 0, 0.35);
+    --ink: #eef2f7;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  h1, h2, h3 { margin: 0 0 8px; }
+  button { font-family: inherit; cursor: pointer; }
+  input, textarea { font-family: inherit; }
+
+  .app-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left));
+  }
+  .app-header-inner {
+    max-width: 880px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .brand-title { font-size: 17px; font-weight: 700; color: var(--ink); }
+  .brand-sub { font-size: 11px; color: var(--text-muted); }
+  .nav-tabs { display: flex; gap: 4px; background: var(--surface-alt); padding: 4px; border-radius: 10px; }
+  .nav-tab {
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    padding: 9px 14px;
+    min-height: 40px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .nav-tab.active { background: var(--primary); color: #fff; }
+
+  main {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 20px max(16px, env(safe-area-inset-right)) 60px max(16px, env(safe-area-inset-left));
+  }
+
+  .banner {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 1px 3px var(--shadow);
+    margin-bottom: 16px;
+  }
+
+  .hero { text-align: center; padding: 28px 20px; }
+  .hero h1 { font-size: 20px; color: var(--ink); }
+  .hero p { color: var(--text-muted); font-size: 13px; margin-bottom: 20px; }
+  .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    padding: 10px 18px;
+    min-height: 44px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .btn:hover { background: var(--surface-alt); }
+  .btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-primary:disabled { background: var(--text-muted); border-color: var(--text-muted); opacity: 0.6; cursor: not-allowed; }
+  .btn-ghost { background: transparent; border-color: transparent; color: var(--primary); }
+  .btn-danger { color: var(--danger); }
+  .btn-lg { padding: 14px 26px; font-size: 15px; }
+
+  .section-title { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 12px; }
+
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 560px) { .field-grid { grid-template-columns: 1fr; } }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 13px; font-weight: 600; color: var(--text); }
+  .field .req { color: var(--danger); }
+  .field input, .field textarea {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 16px;
+    min-height: 44px;
+    background: var(--surface);
+    color: var(--text);
+    width: 100%;
+  }
+  .field textarea { min-height: 76px; }
+  .field input:focus, .field textarea:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+
+  .checklist { display: flex; flex-direction: column; gap: 8px; }
+  .check-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface-alt);
+  }
+  .check-row input[type="checkbox"] { width: 22px; height: 22px; margin-top: 2px; accent-color: var(--primary); flex-shrink: 0; }
+  .check-row span { font-size: 14px; }
+  .check-row.checked { background: var(--success-soft); border-color: var(--success); }
+
+  .sig-wrap { display: flex; justify-content: flex-end; margin-top: 8px; }
+  .sig-block { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; width: 100%; max-width: 360px; }
+  .sig-label-row { display: flex; justify-content: space-between; width: 100%; align-items: center; }
+  .sig-label-row label { font-size: 13px; font-weight: 600; }
+  canvas.sig-pad {
+    width: 100%;
+    height: 150px;
+    border: 1.5px dashed var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    touch-action: none;
+  }
+  .sig-actions { display: flex; gap: 8px; }
+
+  .error-text { color: var(--danger); font-size: 13px; margin-top: 10px; }
+
+  .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+
+  .toolbar { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+  .search-input { flex: 1; min-width: 180px; border: 1px solid var(--border); border-radius: 8px; padding: 11px 12px; min-height: 44px; font-size: 16px; background: var(--surface); color: var(--text); }
+
+  .report-list { display: flex; flex-direction: column; gap: 10px; }
+  .report-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    text-align: left;
+    width: 100%;
+  }
+  .report-row:hover { border-color: var(--primary); }
+  .report-row-main { display: flex; flex-direction: column; gap: 3px; }
+  .report-date { font-size: 15px; font-weight: 700; color: var(--ink); }
+  .report-meta { font-size: 12.5px; color: var(--text-muted); }
+  .badge { font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 100px; white-space: nowrap; }
+  .badge-ok { background: var(--success-soft); color: var(--success); }
+  .badge-warn { background: var(--accent-soft); color: var(--accent); }
+
+  .report-row-wrap { display: flex; align-items: center; gap: 8px; }
+  .report-row-wrap .report-row { flex: 1; }
+  .del-btn { flex-shrink: 0; min-width: 44px; min-height: 44px; padding: 0; font-size: 17px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--danger); display: flex; align-items: center; justify-content: center; }
+
+  .empty-state { text-align: center; color: var(--text-muted); font-size: 13.5px; padding: 40px 10px; }
+
+  .detail-card { padding: 28px; }
+  .detail-title { text-align: center; font-size: 19px; font-weight: 700; color: var(--ink); border-bottom: 2px solid var(--ink); padding-bottom: 12px; margin-bottom: 18px; letter-spacing: 0.06em; }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+  @media (max-width: 560px) { .detail-grid { grid-template-columns: 1fr; } }
+  .detail-cell { padding: 10px 14px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); }
+  .detail-cell:nth-child(2n) { border-right: none; }
+  .detail-cell-label { font-size: 11px; color: var(--text-muted); margin-bottom: 3px; }
+  .detail-block { padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-alt); margin-bottom: 20px; }
+  .detail-block-value { font-size: 14px; white-space: pre-wrap; margin-top: 4px; }
+  .detail-cell-value { font-size: 14.5px; font-weight: 600; }
+  .detail-checklist { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .detail-check-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background: var(--surface-alt); font-size: 13.5px; }
+  .check-mark { width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+  .check-mark.on { background: var(--success); color: #fff; }
+  .check-mark.off { background: var(--surface); border: 1.5px solid var(--border); color: transparent; }
+  .detail-footer { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; margin-top: 10px; }
+  .detail-footer-meta { font-size: 11.5px; color: var(--text-muted); }
+  .sig-display { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .sig-display-label { font-size: 11px; color: var(--text-muted); }
+  .sig-name-box { min-width: 160px; padding: 10px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); font-size: 16px; font-weight: 700; text-align: center; }
+  .detail-actions { display: flex; justify-content: space-between; margin-bottom: 16px; gap: 10px; flex-wrap: wrap; }
+
+  @media print {
+    .app-header, .no-print { display: none !important; }
+    body { background: #fff; }
+    main { padding: 0; max-width: none; }
+    .card { box-shadow: none; margin-bottom: 0; }
+    .detail-card { border: none; box-shadow: none; padding: 0; }
+    .detail-title { font-size: 16px; padding-bottom: 8px; margin-bottom: 12px; }
+    .detail-grid { margin-bottom: 12px; }
+    .detail-cell { padding: 6px 12px; }
+    .detail-block { margin-bottom: 12px; padding: 8px 12px; }
+    .detail-checklist { gap: 5px; margin-bottom: 14px; }
+    .detail-check-row { padding: 6px 12px; font-size: 12.5px; }
+    .check-mark { width: 18px; height: 18px; font-size: 12px; }
+    .sig-img-box { width: 180px; height: 80px; }
+    .detail-title, .detail-grid, .detail-block, .detail-checklist,
+    .detail-check-row, .detail-footer, .sig-display {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+  }
+  @page { margin: 10mm; }
+</style>
+</head>
+<body>
+
+<div class="app-header no-print">
+  <div class="app-header-inner">
+    <div class="brand">
+      <span class="brand-title">KY報告書</span>
+      <span class="brand-sub">危険予知 作成・記録システム for FRe:x Design inc.</span>
+    </div>
+    <div class="nav-tabs" id="nav-tabs"></div>
+  </div>
+</div>
+
+<main id="root"></main>
+
+<script>
+(function () {
+  "use strict";
+
+  var CHECKLIST_ITEMS = [
+    { key: "awareness", label: "作業予定の周知、業務の把握" },
+    { key: "disaster_prevention", label: "労働災害防止（熱中症や熊、蜂等）に努める" },
+    { key: "height_safety", label: "高所環境の安全確保" },
+    { key: "third_party", label: "第三者被害防止に努める" },
+    { key: "emergency", label: "災害発生時の安全確保（緊急避難場所、緊急連絡先体制）" }
+  ];
+
+  var state = {
+    view: "home",         // home | new | history | detail
+    selectedId: null,
+    reports: [],
+    businessNames: [],
+    dbReady: false,
+    dbUnavailable: false
+  };
+
+  // ---------- Supabase 設定（business-list と同一プロジェクト） ----------
+  var SUPABASE_URL = "https://grhqmuqzpjwiuyexasmm.supabase.co";
+  var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyaHFtdXF6cGp3aXV5ZXhhc21tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5ODQ4MzYsImV4cCI6MjA4OTU2MDgzNn0.USghV32TAEgx2fR62KHN3JI5YHTetsaTU5NgFWTScRo";
+  function sbHeaders(extra) {
+    var h = {
+      "apikey": SUPABASE_ANON_KEY,
+      "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+      "Content-Type": "application/json"
+    };
+    if (extra) { for (var k in extra) { if (extra.hasOwnProperty(k)) h[k] = extra[k]; } }
+    return h;
+  }
+
+  var root = document.getElementById("root");
+  var navTabs = document.getElementById("nav-tabs");
+  var localIdCounter = 1;
+
+  // ---------- utils ----------
+  function pad2(n) { return String(n).padStart(2, "0"); }
+  function todayStr() {
+    var d = new Date();
+    return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+  }
+  function formatDateLabel(dateStr) {
+    if (!dateStr) return "-";
+    var parts = dateStr.split("-");
+    if (parts.length !== 3) return dateStr;
+    return parts[0] + "年" + parseInt(parts[1], 10) + "月" + parseInt(parts[2], 10) + "日";
+  }
+  function formatDateTime(ms) {
+    if (!ms) return "-";
+    var d = new Date(ms);
+    return d.getFullYear() + "/" + pad2(d.getMonth() + 1) + "/" + pad2(d.getDate()) + " " +
+      pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+  }
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function allChecked(checklist) {
+    return CHECKLIST_ITEMS.every(function (item) { return checklist && checklist[item.key]; });
+  }
+
+  // ---------- navigation ----------
+  function go(view, id) {
+    state.view = view;
+    state.selectedId = id || null;
+    render();
+    window.scrollTo(0, 0);
+  }
+
+  function renderNavTabs() {
+    var tabs = [
+      { key: "home", label: "ホーム" },
+      { key: "new", label: "新規作成" },
+      { key: "history", label: "履歴" }
+    ];
+    navTabs.innerHTML = tabs.map(function (t) {
+      var active = (state.view === t.key) || (state.view === "detail" && t.key === "history");
+      return '<button class="nav-tab' + (active ? " active" : "") + '" data-nav="' + t.key + '">' + t.label + "</button>";
+    }).join("");
+    Array.prototype.forEach.call(navTabs.querySelectorAll("[data-nav]"), function (btn) {
+      btn.addEventListener("click", function () { go(btn.getAttribute("data-nav")); });
+    });
+  }
+
+  // ---------- data layer ----------
+  var STORAGE_KEY = "ky_reports_v1";
+
+  function loadLocalReports() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      var parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+  function saveLocalReports() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.reports)); } catch (e) {}
+  }
+
+  // Supabase から全報告書を読み込み（全社員で共有）
+  function loadFromSupabase() {
+    return fetch(SUPABASE_URL + "/rest/v1/ky_reports?select=*&order=created_at_ms.desc&limit=1000", {
+      headers: sbHeaders()
+    }).then(function (res) {
+      if (!res.ok) throw new Error("load failed: " + res.status);
+      return res.json();
+    }).then(function (rows) {
+      state.reports = rows.map(function (row) {
+        var d = row.data || {};
+        return Object.assign({}, d, {
+          id: row.id,
+          createdAtMs: row.created_at_ms || d.createdAtMs || null
+        });
+      });
+      state.dbReady = true;
+      state.dbUnavailable = false;
+      saveLocalReports(); // オフライン用キャッシュ
+      if (state.view === "home" || state.view === "history") render();
+    });
+  }
+
+  function addReport(data) {
+    var nowMs = Date.now();
+    var payload = Object.assign({}, data, {
+      createdAtMs: nowMs,
+      createdAt: new Date(nowMs).toISOString()
+    });
+    var body = {
+      created_at_ms: nowMs,
+      project_name: data.projectName || null,
+      work_place: data.workLocation || null,
+      work_content: data.workContent || null,
+      data: payload
+    };
+    return fetch(SUPABASE_URL + "/rest/v1/ky_reports", {
+      method: "POST",
+      headers: sbHeaders({ "Prefer": "return=minimal" }),
+      body: JSON.stringify(body)
+    }).then(function (res) {
+      if (!res.ok) throw new Error("insert failed: " + res.status);
+      return loadFromSupabase();
+    }).catch(function () {
+      // オフライン等：ローカルに退避（この端末のみ・バナー表示）
+      payload.id = "local-" + nowMs + "-" + (localIdCounter++);
+      state.reports.unshift(payload);
+      state.dbUnavailable = true;
+      saveLocalReports();
+    });
+  }
+
+  // business-list（gyomu_rows）から業務名を取得して datalist に供給
+  function loadBusinessNames() {
+    return fetch(SUPABASE_URL + "/rest/v1/gyomu_rows?select=year,row_data,sort_order&order=year.desc,sort_order.asc", {
+      headers: sbHeaders()
+    }).then(function (res) {
+      return res.ok ? res.json() : [];
+    }).then(function (rows) {
+      var seen = {}, names = [];
+      rows.forEach(function (row) {
+        var nm = (row && row.row_data && row.row_data.name) ? String(row.row_data.name).trim() : "";
+        if (nm && !seen[nm]) { seen[nm] = 1; names.push(nm); }
+      });
+      state.businessNames = names;
+      populateBusinessDatalist();
+    }).catch(function () { /* 取得失敗時は自由入力のまま */ });
+  }
+
+  function populateBusinessDatalist() {
+    var dl = document.getElementById("business-name-options");
+    if (!dl) return;
+    dl.innerHTML = state.businessNames.map(function (nm) {
+      return '<option value="' + escapeHtml(nm) + '"></option>';
+    }).join("");
+  }
+
+  state.reports = loadLocalReports(); // 起動直後はローカルキャッシュを即表示
+
+  // Supabase から共有データ・業務名を読み込む
+  loadFromSupabase().catch(function () {
+    state.dbUnavailable = true;
+    if (state.view === "home" || state.view === "history") render();
+  });
+  loadBusinessNames();
+
+  // ---------- render: HOME ----------
+  function renderHome() {
+    var recent = state.reports.slice(0, 5);
+    var recentHtml = recent.length
+      ? recent.map(reportRowHtml).join("")
+      : '<div class="empty-state">まだ報告書がありません。「新規作成」から最初のKY報告書を作成してください。</div>';
+
+    root.innerHTML =
+      (state.dbUnavailable ? bannerHtml() : "") +
+      '<div class="card hero">' +
+      "<h1>KY（危険予知）報告書</h1>" +
+      "<p>現場のKY報告書をその場で作成・記録します。</p>" +
+      '<div class="hero-actions">' +
+      '<button class="btn btn-primary btn-lg" data-go="new">＋ 新規作成</button>' +
+      '<button class="btn btn-lg" data-go="history">履歴を見る</button>' +
+      "</div>" +
+      "</div>" +
+      '<div class="card">' +
+      '<div class="section-title">最近の報告書</div>' +
+      '<div class="report-list">' + recentHtml + "</div>" +
+      "</div>";
+
+    bindGoButtons();
+    bindReportRows();
+  }
+
+  function bannerHtml() {
+    return '<div class="banner">⚠ この報告書データは、今お使いのブラウザ（この端末）にのみ保存されます。他のパソコンやスマートフォンとは共有されません。</div>';
+  }
+
+  function reportRowHtml(r) {
+    var ok = allChecked(r.checklist);
+    return '<button class="report-row" data-open="' + r.id + '">' +
+      '<span class="report-row-main">' +
+      '<span class="report-date">' + escapeHtml(formatDateLabel(r.date)) + "</span>" +
+      '<span class="report-meta">' + escapeHtml(r.projectName || "-") + " ／ " + escapeHtml(r.workLocation || "-") + "</span>" +
+      "</span>" +
+      '<span class="badge ' + (ok ? "badge-ok" : "badge-warn") + '">' + (ok ? "確認完了" : "未確認あり") + "</span>" +
+      "</button>";
+  }
+
+  function bindGoButtons() {
+    Array.prototype.forEach.call(root.querySelectorAll("[data-go]"), function (btn) {
+      btn.addEventListener("click", function () { go(btn.getAttribute("data-go")); });
+    });
+  }
+  function bindReportRows() {
+    Array.prototype.forEach.call(root.querySelectorAll("[data-open]"), function (btn) {
+      btn.addEventListener("click", function () { go("detail", btn.getAttribute("data-open")); });
+    });
+  }
+
+  // ---------- render: NEW ----------
+  function renderNew() {
+    root.innerHTML =
+      (state.dbUnavailable ? bannerHtml() : "") +
+      '<div class="card">' +
+      '<div class="section-title">基本情報</div>' +
+      '<div class="field-grid">' +
+      field("date", "日付", "date", true, todayStr()) +
+      '<div class="field">' +
+      '<label>業務名 <span class="req">*</span></label>' +
+      '<input type="text" id="f-projectName" data-field="projectName" list="business-name-options" placeholder="業務を選択、または入力" autocomplete="off">' +
+      '<datalist id="business-name-options"></datalist>' +
+      '</div>' +
+      field("workLocation", "作業場所", "text", true, "", "例：〇〇市〇〇橋 上部工") +
+      textareaField("workContent", "作業内容", true, "例：橋梁定期点検（下部工点検、写真撮影）") +
+      field("workerCount", "現場作業員数", "number", true, "", "人数") +
+      field("guideCount", "誘導員数", "number", false, "", "人数") +
+      '<div class="field" style="grid-column: 1 / -1;">' +
+      '<label>点検車運転手</label>' +
+      '<div style="display:flex; gap:16px; align-items:center; margin-bottom:8px;">' +
+      '<label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;"><input type="radio" name="driverType" value="自社" checked> 自社</label>' +
+      '<label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;"><input type="radio" name="driverType" value="外注"> 外注</label>' +
+      '</div>' +
+      '<input type="text" id="f-driverName" placeholder="人数（会社名）">' +
+      '</div>' +
+      "</div>" +
+      "</div>" +
+
+      '<div class="card">' +
+      '<div class="section-title">安全チェックリスト</div>' +
+      '<div class="checklist" id="checklist">' +
+      CHECKLIST_ITEMS.map(function (item) {
+        return '<label class="check-row" data-row="' + item.key + '">' +
+          '<input type="checkbox" data-check="' + item.key + '">' +
+          "<span>" + escapeHtml(item.label) + "</span>" +
+          "</label>";
+      }).join("") +
+      "</div>" +
+      "</div>" +
+
+      '<div class="card">' +
+      '<div class="section-title">署名</div>' +
+      '<div class="field">' +
+      '<label>作成者氏名 <span class="req">*</span></label>' +
+      '<input type="text" id="sig-text" placeholder="氏名を入力" style="font-size:18px; font-weight:600;">' +
+      "</div>" +
+      '<div class="error-text" id="sig-error" style="display:none;">氏名を入力してください</div>' +
+      "</div>" +
+
+      '<div class="error-text" id="form-error" style="display:none;"></div>' +
+      '<div class="form-actions">' +
+      '<button class="btn" id="cancel-btn">キャンセル</button>' +
+      '<button class="btn btn-primary" id="submit-btn">報告書を保存</button>' +
+      "</div>";
+
+    bindNewFormEvents();
+    populateBusinessDatalist();
+    if (!state.businessNames.length) loadBusinessNames();
+  }
+
+  function field(id, label, type, required, defVal, placeholder) {
+    return '<div class="field">' +
+      "<label>" + label + (required ? ' <span class="req">*</span>' : "") + "</label>" +
+      '<input type="' + type + '" id="f-' + id + '" data-field="' + id + '"' +
+      (defVal !== undefined && defVal !== "" ? ' value="' + escapeHtml(defVal) + '"' : "") +
+      (placeholder ? ' placeholder="' + escapeHtml(placeholder) + '"' : "") +
+      (type === "number" ? ' min="0" inputmode="numeric" pattern="[0-9]*"' : "") +
+      "></div>";
+  }
+
+  function textareaField(id, label, required, placeholder) {
+    return '<div class="field" style="grid-column: 1 / -1;">' +
+      "<label>" + label + (required ? ' <span class="req">*</span>' : "") + "</label>" +
+      '<textarea id="f-' + id + '" data-field="' + id + '" rows="3"' +
+      (placeholder ? ' placeholder="' + escapeHtml(placeholder) + '"' : "") +
+      "></textarea></div>";
+  }
+
+  function setupSignaturePad(canvas) {
+    var ctx = canvas.getContext("2d");
+    var hasDrawn = false;
+    var drawing = false;
+    var last = null;
+
+    function resize() {
+      var rect = canvas.getBoundingClientRect();
+      var dpr = window.devicePixelRatio || 1;
+      var prev = hasDrawn ? canvas.toDataURL("image/png") : null;
+      canvas.width = Math.max(1, Math.round(rect.width * dpr));
+      canvas.height = Math.max(1, Math.round(rect.height * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      ctx.lineWidth = 2.6;
+      ctx.strokeStyle = "#17253b";
+      if (prev) {
+        var img = new Image();
+        img.onload = function () { ctx.drawImage(img, 0, 0, rect.width, rect.height); };
+        img.src = prev;
+      }
+    }
+    resize();
+    window.requestAnimationFrame(resize);
+    window.addEventListener("resize", resize);
+    window.addEventListener("orientationchange", function () { window.setTimeout(resize, 200); });
+
+    function pos(e) {
+      var rect = canvas.getBoundingClientRect();
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+    function start(e) {
+      drawing = true; hasDrawn = true;
+      last = pos(e);
+      canvas.setPointerCapture && e.pointerId != null && canvas.setPointerCapture(e.pointerId);
+    }
+    function move(e) {
+      if (!drawing) return;
+      var p = pos(e);
+      ctx.beginPath();
+      ctx.moveTo(last.x, last.y);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      last = p;
+      e.preventDefault();
+    }
+    function end() { drawing = false; last = null; }
+
+    canvas.addEventListener("pointerdown", start);
+    canvas.addEventListener("pointermove", move);
+    canvas.addEventListener("pointerup", end);
+    canvas.addEventListener("pointerleave", end);
+    canvas.addEventListener("pointercancel", end);
+
+    return {
+      clear: function () {
+        var rect = canvas.getBoundingClientRect();
+        ctx.clearRect(0, 0, rect.width, rect.height);
+        hasDrawn = false;
+      },
+      isEmpty: function () { return !hasDrawn; },
+      toDataUrl: function () { return canvas.toDataURL("image/png"); }
+    };
+  }
+
+  function bindNewFormEvents() {
+    Array.prototype.forEach.call(root.querySelectorAll(".check-row"), function (row) {
+      var cb = row.querySelector("input[type=checkbox]");
+      cb.addEventListener("change", function () {
+        row.classList.toggle("checked", cb.checked);
+      });
+    });
+
+    document.getElementById("cancel-btn").addEventListener("click", function () { go("home"); });
+
+    document.getElementById("submit-btn").addEventListener("click", function () {
+      var errEl = document.getElementById("form-error");
+      var sigErrEl = document.getElementById("sig-error");
+      errEl.style.display = "none";
+      sigErrEl.style.display = "none";
+
+      var date = document.getElementById("f-date").value;
+      var projectName = document.getElementById("f-projectName").value.trim();
+      var workLocation = document.getElementById("f-workLocation").value.trim();
+      var workContent = document.getElementById("f-workContent").value.trim();
+      var workerCountRaw = document.getElementById("f-workerCount").value;
+      var guideCountRaw = document.getElementById("f-guideCount").value;
+      var driverTypeEl = document.querySelector('input[name="driverType"]:checked');
+      var driverType = driverTypeEl ? driverTypeEl.value : "自社";
+      var driverName = document.getElementById("f-driverName").value.trim();
+
+      var checklist = {};
+      CHECKLIST_ITEMS.forEach(function (item) {
+        checklist[item.key] = document.querySelector('[data-check="' + item.key + '"]').checked;
+      });
+
+      var missing = [];
+      if (!date) missing.push("日付");
+      if (!projectName) missing.push("業務名");
+      if (!workLocation) missing.push("作業場所");
+      if (!workContent) missing.push("作業内容");
+      if (workerCountRaw === "" || Number(workerCountRaw) < 0) missing.push("現場作業員数");
+
+      var sigText = document.getElementById("sig-text").value.trim();
+      var sigMissing = !sigText;
+
+      if (missing.length || sigMissing) {
+        if (missing.length) {
+          errEl.textContent = "未入力・未確認の項目があります： " + missing.join("、");
+          errEl.style.display = "block";
+        }
+        if (sigMissing) sigErrEl.style.display = "block";
+        return;
+      }
+
+      var submitBtn = document.getElementById("submit-btn");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "保存中…";
+
+      addReport({
+        date: date,
+        projectName: projectName,
+        workLocation: workLocation,
+        workContent: workContent,
+        workerCount: Number(workerCountRaw),
+        guideCount: guideCountRaw === "" ? 0 : Number(guideCountRaw),
+        driverType: driverType,
+        driverName: driverName,
+        checklist: checklist,
+        signature: sigText
+      }).then(function () {
+        go("history");
+      }).catch(function () {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "報告書を保存";
+        errEl.textContent = "保存に失敗しました。もう一度お試しください。";
+        errEl.style.display = "block";
+      });
+    });
+  }
+
+  // ---------- 削除 ----------
+  function deleteReport(id) {
+    if (!confirm("この報告書を削除しますか？")) return;
+    // ローカル退避分はローカルだけ削除
+    if (typeof id === "string" && id.indexOf("local-") === 0) {
+      state.reports = state.reports.filter(function (r) { return r.id !== id; });
+      saveLocalReports();
+      render();
+      return;
+    }
+    fetch(SUPABASE_URL + "/rest/v1/ky_reports?id=eq." + encodeURIComponent(id), {
+      method: "DELETE",
+      headers: sbHeaders({ "Prefer": "return=minimal" })
+    }).then(function (res) {
+      if (!res.ok) throw new Error("delete failed: " + res.status);
+      return loadFromSupabase();
+    }).catch(function () {
+      alert("削除に失敗しました。通信環境をご確認ください。");
+    });
+  }
+
+  function historyRowHtml(r) {
+    var ok = allChecked(r.checklist);
+    return '<div class="report-row-wrap">' +
+      '<button class="report-row" data-open="' + r.id + '">' +
+      '<span class="report-row-main">' +
+      '<span class="report-date">' + escapeHtml(formatDateLabel(r.date)) + "</span>" +
+      '<span class="report-meta">' + escapeHtml(r.projectName || "-") + " ／ " + escapeHtml(r.workLocation || "-") + "</span>" +
+      "</span>" +
+      '<span class="badge ' + (ok ? "badge-ok" : "badge-warn") + '">' + (ok ? "確認完了" : "未確認あり") + "</span>" +
+      "</button>" +
+      '<button class="del-btn" data-delete="' + r.id + '" title="削除">🗑</button>' +
+      "</div>";
+  }
+
+  function bindDeleteButtons() {
+    Array.prototype.forEach.call(root.querySelectorAll("[data-delete]"), function (btn) {
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        deleteReport(btn.getAttribute("data-delete"));
+      });
+    });
+  }
+
+  // ---------- render: HISTORY ----------
+  function renderHistory() {
+    root.innerHTML =
+      (state.dbUnavailable ? bannerHtml() : "") +
+      '<div class="card">' +
+      '<div class="toolbar">' +
+      '<input class="search-input" id="hist-search" placeholder="業務名・作業場所・作業内容で検索">' +
+      '<button class="btn btn-primary" data-go="new">＋ 新規作成</button>' +
+      "</div>" +
+      '<div class="report-list" id="hist-list"></div>' +
+      "</div>";
+
+    bindGoButtons();
+
+    var searchInput = document.getElementById("hist-search");
+    function renderList() {
+      var q = (searchInput.value || "").trim().toLowerCase();
+      var filtered = state.reports.filter(function (r) {
+        if (!q) return true;
+        return (r.projectName || "").toLowerCase().indexOf(q) !== -1 ||
+          (r.workLocation || "").toLowerCase().indexOf(q) !== -1 ||
+          (r.workContent || "").toLowerCase().indexOf(q) !== -1;
+      });
+      var listEl = document.getElementById("hist-list");
+      listEl.innerHTML = filtered.length
+        ? filtered.map(historyRowHtml).join("")
+        : '<div class="empty-state">該当する報告書がありません。</div>';
+      bindReportRows();
+      bindDeleteButtons();
+    }
+    searchInput.addEventListener("input", renderList);
+    renderList();
+  }
+
+  // ---------- render: DETAIL ----------
+  function renderDetail() {
+    var r = state.reports.find(function (x) { return x.id === state.selectedId; });
+    if (!r) {
+      root.innerHTML = '<div class="card empty-state">報告書が見つかりませんでした。</div>';
+      return;
+    }
+    var checklist = r.checklist || {};
+    root.innerHTML =
+      '<div class="detail-actions no-print">' +
+      '<button class="btn" id="back-btn">← 履歴に戻る</button>' +
+      '<button class="btn btn-primary" id="print-btn">🖨 印刷 / PDF保存</button>' +
+      "</div>" +
+      '<div class="card detail-card">' +
+      '<div class="detail-title">KY（危険予知）報告書</div>' +
+      '<div class="detail-grid">' +
+      detailCell("日付", formatDateLabel(r.date)) +
+      detailCell("業務名", r.projectName) +
+      detailCell("作業場所", r.workLocation) +
+      detailCell("現場作業員数", (r.workerCount != null ? r.workerCount + " 名" : "-")) +
+      detailCell("誘導員数", (r.guideCount != null ? r.guideCount + " 名" : "-")) +
+      detailCell("点検車運転手", (r.driverType || "") + (r.driverName ? "　" + r.driverName : "")) +
+      "</div>" +
+      '<div class="detail-block">' +
+      '<div class="detail-cell-label">作業内容</div>' +
+      '<div class="detail-block-value">' + escapeHtml(r.workContent || "-") + "</div>" +
+      "</div>" +
+      '<div class="detail-checklist">' +
+      CHECKLIST_ITEMS.map(function (item) {
+        var on = !!checklist[item.key];
+        return '<div class="detail-check-row"><span class="check-mark ' + (on ? "on" : "off") + '">' + (on ? "✓" : "") + "</span><span>" + escapeHtml(item.label) + "</span></div>";
+      }).join("") +
+      "</div>" +
+      '<div class="detail-footer">' +
+      '<div class="detail-footer-meta">登録日時：' + escapeHtml(formatDateTime(r.createdAtMs)) + "</div>" +
+      '<div class="sig-display">' +
+      '<span class="sig-display-label">署名</span>' +
+      '<div class="sig-name-box">' + escapeHtml(r.signature || "未署名") + "</div>" +
+      "</div>" +
+      "</div>" +
+      "</div>";
+
+    document.getElementById("back-btn").addEventListener("click", function () { go("history"); });
+    document.getElementById("print-btn").addEventListener("click", function () { window.print(); });
+  }
+
+  function detailCell(label, value) {
+    return '<div class="detail-cell"><div class="detail-cell-label">' + label + '</div><div class="detail-cell-value">' + escapeHtml(value || "-") + "</div></div>";
+  }
+
+  // ---------- main render ----------
+  function render() {
+    renderNavTabs();
+    if (state.view === "home") renderHome();
+    else if (state.view === "new") renderNew();
+    else if (state.view === "history") renderHistory();
+    else if (state.view === "detail") renderDetail();
+  }
+
+  render();
+
+  // ── PWA：ホーム画面追加 & オフライン対応 ──────────────────
+  (function pwaSetup() {
+    // アプリアイコンをCanvasで生成（🦺 on blue）
+    function makeIcon(size) {
+      var c = document.createElement("canvas");
+      c.width = c.height = size;
+      var ctx = c.getContext("2d");
+      var r = size * 0.18;
+      ctx.beginPath();
+      ctx.moveTo(r, 0); ctx.lineTo(size - r, 0);
+      ctx.quadraticCurveTo(size, 0, size, r);
+      ctx.lineTo(size, size - r);
+      ctx.quadraticCurveTo(size, size, size - r, size);
+      ctx.lineTo(r, size);
+      ctx.quadraticCurveTo(0, size, 0, size - r);
+      ctx.lineTo(0, r);
+      ctx.quadraticCurveTo(0, 0, r, 0);
+      ctx.closePath();
+      ctx.fillStyle = "#1d5fae";
+      ctx.fill();
+      ctx.font = Math.round(size * 0.56) + "px serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("\uD83E\uDDBA", size / 2, size * 0.54);
+      return c.toDataURL("image/png");
+    }
+
+    var icon192 = makeIcon(192);
+    var icon512 = makeIcon(512);
+
+    // Apple Touch Icon（iOS ホーム画面アイコン）
+    var appleLink = document.createElement("link");
+    appleLink.rel = "apple-touch-icon";
+    appleLink.href = icon512;
+    document.head.appendChild(appleLink);
+
+    // Web App Manifest（Android / Chrome）
+    var manifest = {
+      name: "KY報告書",
+      short_name: "KY報告書",
+      description: "危険予知 作成・記録システム",
+      start_url: location.href.split("?")[0],
+      display: "standalone",
+      orientation: "portrait",
+      background_color: "#f2f5f8",
+      theme_color: "#1d5fae",
+      lang: "ja",
+      icons: [
+        { src: icon192, sizes: "192x192", type: "image/png" },
+        { src: icon512, sizes: "512x512", type: "image/png" }
+      ]
+    };
+    var blob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
+    var mLink = document.createElement("link");
+    mLink.rel = "manifest";
+    mLink.href = URL.createObjectURL(blob);
+    document.head.appendChild(mLink);
+
+    // Service Worker（オフラインキャッシュ）
+    if ("serviceWorker" in navigator) {
+      var swCode = [
+        'var CACHE="ky-v1";',
+        'self.addEventListener("install",function(e){self.skipWaiting();});',
+        'self.addEventListener("activate",function(e){e.waitUntil(clients.claim());});',
+        'self.addEventListener("fetch",function(e){',
+        '  if(e.request.method!=="GET")return;',
+        '  e.respondWith(caches.open(CACHE).then(function(cache){',
+        '    return fetch(e.request).then(function(res){',
+        '      cache.put(e.request,res.clone());return res;',
+        '    }).catch(function(){return caches.match(e.request);});',
+        '  }));',
+        '});'
+      ].join("");
+      var swBlob = new Blob([swCode], { type: "application/javascript" });
+      navigator.serviceWorker.register(URL.createObjectURL(swBlob))
+        .catch(function() {}); // スコープ制限でも無視
+    }
+  })();
+  // ────────────────────────────────────────────────────────────
+
+})();
+</script>
+</body>
+</html>
