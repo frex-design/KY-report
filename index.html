@@ -195,6 +195,10 @@
   }
   .field textarea { min-height: 76px; }
   .field input:focus, .field textarea:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+  /* iOS Safari: input[type=date] の値が中央寄せ・はみ出しになるのを防ぐ（左寄せに統一） */
+  .field input[type="date"] { -webkit-appearance: none; appearance: none; text-align: left; }
+  .field input[type="date"]::-webkit-date-and-time-value { text-align: left; margin: 0; }
+  .field input[type="date"]::-webkit-datetime-edit { text-align: left; }
 
   .checklist { display: flex; flex-direction: column; gap: 8px; }
   .check-row {
