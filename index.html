@@ -200,6 +200,48 @@
   .field input[type="date"]::-webkit-date-and-time-value { text-align: left; margin: 0; }
   .field input[type="date"]::-webkit-datetime-edit { text-align: left; }
 
+  /* 業務名 コンボボックス（タップでリスト表示） */
+  .combo { position: relative; }
+  .combo > input { padding-right: 40px; }
+  .combo-toggle {
+    position: absolute;
+    top: 0; right: 0;
+    height: 100%;
+    width: 40px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .combo-list {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0; right: 0;
+    z-index: 50;
+    max-height: 260px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px var(--shadow);
+  }
+  .combo-list.open { display: block; }
+  .combo-item {
+    padding: 13px 14px;
+    font-size: 15px;
+    line-height: 1.4;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .combo-item:last-child { border-bottom: none; }
+  .combo-item:hover, .combo-item:active { background: var(--primary-soft); }
+  .combo-empty { padding: 13px 14px; font-size: 13px; color: var(--text-muted); }
+
   .checklist { display: flex; flex-direction: column; gap: 8px; }
   .check-row {
     display: flex;
@@ -477,7 +519,7 @@
     });
   }
 
-  // business-list（gyomu_rows）から業務名を取得して datalist に供給
+  // business-list（gyomu_rows）から業務名を取得してコンボボックスに供給
   function loadBusinessNames() {
     return fetch(SUPABASE_URL + "/rest/v1/gyomu_rows?select=year,row_data,sort_order&order=year.desc,sort_order.asc", {
       headers: sbHeaders()
@@ -490,16 +532,85 @@
         if (nm && !seen[nm]) { seen[nm] = 1; names.push(nm); }
       });
       state.businessNames = names;
-      populateBusinessDatalist();
+      if (document.getElementById("business-combo-list")) {
+        var inp = document.getElementById("f-projectName");
+        renderBusinessComboList(inp ? inp.value : "");
+      }
     }).catch(function () { /* 取得失敗時は自由入力のまま */ });
   }
 
-  function populateBusinessDatalist() {
-    var dl = document.getElementById("business-name-options");
-    if (!dl) return;
-    dl.innerHTML = state.businessNames.map(function (nm) {
-      return '<option value="' + escapeHtml(nm) + '"></option>';
+  // ---------- 業務名 コンボボックス（タップでリスト表示・絞り込み・自由入力可） ----------
+  var comboOpen = false;
+
+  function renderBusinessComboList(filter) {
+    var listEl = document.getElementById("business-combo-list");
+    if (!listEl) return;
+    var q = (filter || "").trim().toLowerCase();
+    var items = state.businessNames.filter(function (nm) {
+      return !q || nm.toLowerCase().indexOf(q) !== -1;
+    });
+    if (!state.businessNames.length) {
+      listEl.innerHTML = '<div class="combo-empty">業務一覧を読み込み中…（自由入力もできます）</div>';
+      return;
+    }
+    if (!items.length) {
+      listEl.innerHTML = '<div class="combo-empty">該当する業務がありません（このまま自由入力できます）</div>';
+      return;
+    }
+    listEl.innerHTML = items.map(function (nm) {
+      return '<div class="combo-item" data-val="' + escapeHtml(nm) + '">' + escapeHtml(nm) + "</div>";
     }).join("");
+  }
+
+  function openBusinessCombo() {
+    var input = document.getElementById("f-projectName");
+    var listEl = document.getElementById("business-combo-list");
+    if (!input || !listEl) return;
+    renderBusinessComboList(input.value);
+    listEl.classList.add("open");
+    comboOpen = true;
+  }
+  function closeBusinessCombo() {
+    var listEl = document.getElementById("business-combo-list");
+    if (listEl) listEl.classList.remove("open");
+    comboOpen = false;
+  }
+
+  function setupBusinessCombo() {
+    var combo = document.getElementById("business-combo");
+    var input = document.getElementById("f-projectName");
+    var listEl = document.getElementById("business-combo-list");
+    var toggle = document.getElementById("business-combo-toggle");
+    if (!combo || !input || !listEl) return;
+
+    input.addEventListener("focus", openBusinessCombo);
+    input.addEventListener("input", function () { openBusinessCombo(); });
+
+    if (toggle) {
+      toggle.addEventListener("mousedown", function (e) { e.preventDefault(); });
+      toggle.addEventListener("click", function (e) {
+        e.preventDefault();
+        if (comboOpen) { closeBusinessCombo(); }
+        else { input.focus(); openBusinessCombo(); }
+      });
+    }
+
+    // リストは mousedown で input のblurを防ぎ、click で選択
+    listEl.addEventListener("mousedown", function (e) { e.preventDefault(); });
+    listEl.addEventListener("click", function (e) {
+      var t = e.target;
+      while (t && t !== listEl && !(t.className && String(t.className).indexOf("combo-item") !== -1)) { t = t.parentNode; }
+      if (!t || t === listEl) return;
+      input.value = t.getAttribute("data-val");
+      closeBusinessCombo();
+    });
+
+    // 外側タップで閉じる
+    document.addEventListener("click", function (e) {
+      if (comboOpen && combo && !combo.contains(e.target)) closeBusinessCombo();
+    });
+
+    renderBusinessComboList("");
   }
 
   state.reports = loadLocalReports(); // 起動直後はローカルキャッシュを即表示
@@ -573,8 +684,11 @@
       field("date", "日付", "date", true, todayStr()) +
       '<div class="field">' +
       '<label>業務名 <span class="req">*</span></label>' +
-      '<input type="text" id="f-projectName" data-field="projectName" list="business-name-options" placeholder="業務を選択、または入力" autocomplete="off">' +
-      '<datalist id="business-name-options"></datalist>' +
+      '<div class="combo" id="business-combo">' +
+      '<input type="text" id="f-projectName" data-field="projectName" placeholder="タップして業務を選択、または入力" autocomplete="off">' +
+      '<button type="button" class="combo-toggle" id="business-combo-toggle" aria-label="業務一覧">▾</button>' +
+      '<div class="combo-list" id="business-combo-list"></div>' +
+      '</div>' +
       '</div>' +
       field("workLocation", "作業場所・箇所", "text", false, "", "例：○○橋等") +
       textareaField("workContent", "作業内容", false, "例：点検車点検、地上点検") +
@@ -619,7 +733,7 @@
       "</div>";
 
     bindNewFormEvents();
-    populateBusinessDatalist();
+    setupBusinessCombo();
     if (!state.businessNames.length) loadBusinessNames();
   }
 
