@@ -575,8 +575,8 @@
       '<input type="text" id="f-projectName" data-field="projectName" list="business-name-options" placeholder="業務を選択、または入力" autocomplete="off">' +
       '<datalist id="business-name-options"></datalist>' +
       '</div>' +
-      field("workLocation", "作業場所", "text", true, "", "例：〇〇市〇〇橋 上部工") +
-      textareaField("workContent", "作業内容", true, "例：橋梁定期点検（下部工点検、写真撮影）") +
+      field("workLocation", "作業場所", "text", false, "", "例：〇〇市〇〇橋 上部工") +
+      textareaField("workContent", "作業内容", false, "例：橋梁定期点検（下部工点検、写真撮影）") +
       field("workerCount", "現場作業員数", "number", true, "", "人数") +
       field("guideCount", "誘導員数", "number", false, "", "人数") +
       '<div class="field" style="grid-column: 1 / -1;">' +
@@ -740,8 +740,6 @@
       var missing = [];
       if (!date) missing.push("日付");
       if (!projectName) missing.push("業務名");
-      if (!workLocation) missing.push("作業場所");
-      if (!workContent) missing.push("作業内容");
       if (workerCountRaw === "" || Number(workerCountRaw) < 0) missing.push("現場作業員数");
 
       var sigText = document.getElementById("sig-text").value.trim();
